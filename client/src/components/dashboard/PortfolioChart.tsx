@@ -93,14 +93,16 @@ export function PortfolioChart({ data, benchmarkLabel, mode = 'mwr', showBenchma
 
     chart.timeScale().fitContent();
 
-    // Ograniczenie zakresu — nie wyjeżdżamy poza dane (z małym buforem)
+    // Ograniczenie zakresu — bufor tylko przy zoomie
     const maxIdx = data.length - 1;
     const buffer = Math.ceil(data.length * 0.03);
     let clamping = false;
     chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
       if (!range || clamping) return;
-      const from = Math.max(range.from, -buffer);
-      const to = Math.min(range.to, maxIdx + buffer);
+      const isZoomed = (range.to - range.from) < maxIdx;
+      const b = isZoomed ? buffer : 0;
+      const from = Math.max(range.from, -b);
+      const to = Math.min(range.to, maxIdx + b);
       if (from !== range.from || to !== range.to) {
         clamping = true;
         chart.timeScale().setVisibleLogicalRange({ from, to });

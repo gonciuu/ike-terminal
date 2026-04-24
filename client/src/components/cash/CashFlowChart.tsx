@@ -107,12 +107,14 @@ export function CashFlowChart({ data, currency, showPortfolio, showCashFlow }: C
     chart.timeScale().subscribeVisibleLogicalRangeChange((range) => {
       if (!range || clamping) return;
 
-      // Detekcja zoomu — porównanie z pełnym zakresem
-      const isFullRange = range.from <= 0 && range.to >= maxIdx;
-      setZoomed(!isFullRange);
+      const visibleBars = range.to - range.from;
+      const isZoomed = visibleBars < maxIdx;
+      setZoomed(isZoomed);
 
-      const from = Math.max(range.from, -buffer);
-      const to = Math.min(range.to, maxIdx + buffer);
+      // Bufor tylko przy zoomie — przy pełnym widoku trzymamy się danych
+      const b = isZoomed ? buffer : 0;
+      const from = Math.max(range.from, -b);
+      const to = Math.min(range.to, maxIdx + b);
       if (from !== range.from || to !== range.to) {
         clamping = true;
         chart.timeScale().setVisibleLogicalRange({ from, to });
